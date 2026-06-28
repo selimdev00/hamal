@@ -12,7 +12,7 @@ export default function useBoolean(initialValue = false) {
   }
 
   function toggle() {
-    setValue(!value);
+    setValue((v) => !v);
   }
 
   return [

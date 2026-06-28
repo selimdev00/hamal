@@ -3,16 +3,25 @@ import { Component, createRef } from "react";
 import ThemeContext from "contexts/Theme";
 
 import {
-  StyledBlock,
-  StyledButton,
-  StyledHighlightedText,
-  StyledText,
-  StyledTitle,
-  StyledWrapper,
-} from "styles/TestBlockStyles";
+  Button,
+  Field,
+  LiveRegion,
+  Readout,
+  Row,
+  SelectField,
+  SpecimenCard,
+  Stack,
+  SubLabel,
+  Text,
+} from "ui";
 
 import PropTypes from "prop-types";
 
+/**
+ * SPEC 27 — Class lifecycle. Intentionally a class component: the point is to
+ * watch mount, update, snapshot, and unmount fire in order. Every transition is
+ * logged to the console; SPEC 28 mirrors the same wiring with hooks.
+ */
 class TestClassComponent extends Component {
   static contextType = ThemeContext;
 
@@ -30,6 +39,7 @@ class TestClassComponent extends Component {
     super(props);
 
     this.roomRef = createRef();
+    this.serverRef = createRef();
   }
 
   state = {
@@ -37,17 +47,18 @@ class TestClassComponent extends Component {
     name: "Class Component",
     serverUrl: "http://localhost:3000",
     roomId: 1,
+    note: "Mounted. Lifecycle logs are streaming to the console.",
   };
 
   setupConnection = () => {
     console.log(
-      `✅[${this.state.name}]: Connected to server: ${this.state.serverUrl}, room: ${this.state.roomId}`,
+      `[${this.state.name}]: Connected to server: ${this.state.serverUrl}, room: ${this.state.roomId}`,
     );
   };
 
   cancelConnection = ({ roomId, serverUrl }) => {
     console.log(
-      `❌[${this.state.name}]: Disconnected from server: ${serverUrl}, room: ${roomId}`,
+      `[${this.state.name}]: Disconnected from server: ${serverUrl}, room: ${roomId}`,
     );
   };
 
@@ -59,14 +70,14 @@ class TestClassComponent extends Component {
     this.cancelConnection(this.state);
   }
 
-  getSnapshotBeforeUpdate(prevProps, prevState) {
-    return this.roomRef.current.value;
+  getSnapshotBeforeUpdate() {
+    return this.roomRef.current ? this.roomRef.current.value : null;
   }
 
   componentDidUpdate(prevProps, prevState, snapshot) {
     if (prevState.count !== this.state.count) {
       console.log(
-        `🔴[${this.state.name}]: Count changed from ${prevState.count} to ${this.state.count}`,
+        `[${this.state.name}]: Count changed from ${prevState.count} to ${this.state.count}`,
       );
     }
 
@@ -78,118 +89,111 @@ class TestClassComponent extends Component {
       this.setupConnection();
     }
 
-    console.log(`🫰 [${this.state.name}]: Snapshot ${snapshot}`);
+    console.log(`[${this.state.name}]: Snapshot (before update) ${snapshot}`);
     console.log(
-      `🫰 [${this.state.name}]: Snapshot (native ???) ${this.roomRef.current.value}`,
+      `[${this.state.name}]: Snapshot (after update) ${
+        this.roomRef.current ? this.roomRef.current.value : null
+      }`,
     );
   }
 
   addCount = () => {
-    this.setState({
-      count: this.state.count + 1,
-    });
+    this.setState({ count: this.state.count + 1 });
   };
 
   removeCount = () => {
-    this.setState({
-      count: this.state.count - 1,
-    });
+    this.setState({ count: this.state.count - 1 });
   };
 
   changeRoomId = (event) => {
-    this.setState(
-      {
-        roomId: event.target.value,
-      },
-      () => {
-        console.log(`✅ Room changed to ${this.state.roomId}`);
-      },
-    );
-  };
+    const roomId = Number(event.target.value);
 
-  applyServer = () => {
-    const serverUrl = document.getElementById("server").value;
-
-    this.setState({
-      serverUrl,
+    this.setState({ roomId, note: `Room set to ${roomId}.` }, () => {
+      console.log(`[${this.state.name}]: Room changed to ${this.state.roomId}`);
     });
   };
 
+  applyServer = () => {
+    const node = this.serverRef.current;
+    const serverUrl = node ? node.value.trim() : "";
+
+    if (!serverUrl) {
+      this.setState({ note: "Enter a server URL before applying." });
+      return;
+    }
+
+    this.setState({ serverUrl, note: `Server set to ${serverUrl}.` });
+  };
+
   render() {
-    const theme = this.context;
+    const { theme } = this.context;
 
     return (
-      <StyledWrapper>
-        <StyledText>Reactive values handled with </StyledText>
-        <StyledHighlightedText as={"pre"}>
-          componentDidMount, componentDidUpdate, componentDidUnmount
-        </StyledHighlightedText>
-        <StyledText>-</StyledText>
-        <StyledHighlightedText as={"pre"}>useEffect</StyledHighlightedText>
-        <StyledText>takes less code and more developer friendly</StyledText>
+      <SpecimenCard
+        index={27}
+        name="Class lifecycle"
+        category="Lifecycle"
+        status="on"
+        instruments={["Component", "contextType", "getSnapshotBeforeUpdate"]}
+        blurb="The class lifecycle in full: mount, update, snapshot, unmount - logged to the console. This card stays mounted; SPEC 28 mirrors it with hooks."
+      >
+        <Stack $gap="var(--sp-2)">
+          <SubLabel as="h3">Server</SubLabel>
+          <Row>
+            <Field
+              label="Server URL"
+              type="text"
+              placeholder="http://localhost:3000"
+              inputRef={this.serverRef}
+            />
+            <Button $variant="primary" onClick={this.applyServer}>
+              Apply server
+            </Button>
+          </Row>
+          <Text as="span">
+            current <Readout>{this.state.serverUrl}</Readout>
+          </Text>
+        </Stack>
 
-        <StyledBlock>
-          <StyledText>Server:</StyledText>
-
-          <input id="server" type="text" />
-
-          <StyledButton onClick={this.applyServer}>Apply server</StyledButton>
-        </StyledBlock>
-
-        <StyledBlock>
-          <StyledText>Room:</StyledText>
-          <select
-            ref={this.roomRef}
+        <Stack $gap="var(--sp-2)">
+          <SubLabel as="h3">Room</SubLabel>
+          <SelectField
+            label="Room"
+            selectRef={this.roomRef}
             value={this.state.roomId}
             onChange={this.changeRoomId}
           >
             <option value="1">General</option>
             <option value="2">Develops</option>
             <option value="3">Designers</option>
-          </select>
-        </StyledBlock>
+          </SelectField>
+          <Text as="span">
+            room id <Readout>{this.state.roomId}</Readout>
+          </Text>
+        </Stack>
 
-        <StyledTitle>Test (class component)</StyledTitle>
+        <Stack $gap="var(--sp-2)">
+          <SubLabel as="h3">Count</SubLabel>
+          <Row>
+            <Button $variant="ghost" onClick={this.removeCount}>
+              -
+            </Button>
+            <Readout $size="var(--step-1)">{this.state.count}</Readout>
+            <Button $variant="primary" onClick={this.addCount}>
+              +
+            </Button>
+          </Row>
+        </Stack>
 
-        <StyledText>
-          So this is <StyledHighlightedText>class</StyledHighlightedText>{" "}
-          component
-        </StyledText>
+        <Stack $gap="var(--sp-2)">
+          <SubLabel as="h3">Context</SubLabel>
+          <Text as="span">
+            theme reads <Readout>{theme}</Readout> via static contextType
+          </Text>
+        </Stack>
 
-        <StyledText>
-          Theme context: <StyledHighlightedText>{theme}</StyledHighlightedText>
-        </StyledText>
-
-        <StyledText>
-          Styled with:{" "}
-          <StyledHighlightedText>styled-components</StyledHighlightedText>{" "}
-          exported with a{" "}
-          <StyledHighlightedText>single exported file</StyledHighlightedText>
-        </StyledText>
-
-        <StyledText>
-          And that's <StyledHighlightedText>cool</StyledHighlightedText>, but we{" "}
-          <StyledHighlightedText>should not</StyledHighlightedText> use{" "}
-          <StyledHighlightedText>Class Components</StyledHighlightedText> in
-          nowadays projects
-        </StyledText>
-
-        <StyledText>
-          Props:{" "}
-          {Object.keys(this.props).map((key) => (
-            <StyledHighlightedText key={key}>
-              {this.props[key]} |{" "}
-            </StyledHighlightedText>
-          ))}
-        </StyledText>
-
-        <StyledBlock>
-          <StyledText>State usage (count):</StyledText>
-          <StyledHighlightedText>{this.state.count}</StyledHighlightedText>
-          <StyledButton onClick={this.addCount}>+</StyledButton>
-          <StyledButton onClick={this.removeCount}>-</StyledButton>
-        </StyledBlock>
-      </StyledWrapper>
+        <LiveRegion>{this.state.note}</LiveRegion>
+      </SpecimenCard>
     );
   }
 }

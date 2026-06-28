@@ -1,14 +1,16 @@
-import { StyledButton, StyledText } from "styles/TestBlockStyles";
+import { Button, Readout, Text } from "ui";
 import MoneyProvider from "components/HOC/MoneyProvider";
 
 const Person = ({ name, money, addMoney }) => {
   return (
     <>
-      <StyledText>
-        {name} has ${money}
-      </StyledText>
+      <Text as="span">
+        {name} has $<Readout>{money}</Readout>
+      </Text>
 
-      <StyledButton onClick={addMoney}>Add money</StyledButton>
+      <Button $variant="primary" onClick={addMoney}>
+        Add money
+      </Button>
     </>
   );
 };

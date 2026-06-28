@@ -6,7 +6,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import reportWebVitals from "./reportWebVitals";
 
-import ThemeContext from "contexts/Theme";
+import { ThemeProvider } from "contexts/Theme";
+import { AuthProvider } from "contexts/Auth";
 import HomePage from "pages/Home";
 import AboutPage from "pages/About";
 import NotFound from "components/Errors/NotFound";
@@ -15,19 +16,18 @@ import DefaultLayout from "layouts/Default";
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <BrowserRouter>
-    <ThemeContext.Provider value="dark">
-      <DefaultLayout>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/about" element={<AboutPage />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </DefaultLayout>
-    </ThemeContext.Provider>
+    <ThemeProvider>
+      <AuthProvider>
+        <DefaultLayout>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </DefaultLayout>
+      </AuthProvider>
+    </ThemeProvider>
   </BrowserRouter>,
 );
 
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
 reportWebVitals();

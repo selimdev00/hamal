@@ -1,28 +1,34 @@
+import styled from "styled-components";
+
 import Header from "../components/Layout/Header";
 import Footer from "../components/Layout/Footer";
 
-import styled from "styled-components";
-
-const StyledWrapper = styled.div`
+const Shell = styled.div`
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  min-height: 100dvh;
+  background: var(--bg-sunken);
 `;
 
-const StyledMain = styled.main`
+const Main = styled.main`
   flex-grow: 1;
-  height: 100%;
-  padding: 1em;
-  background-color: #f5f5f5;
+  width: 100%;
+  outline: none;
 `;
+
+const SkipLink = styled.a.attrs({ className: "skip-link" })``;
 
 function DefaultLayout({ children }) {
   return (
-    <StyledWrapper>
+    <Shell>
+      <SkipLink href="#main">Skip to content</SkipLink>
       <Header />
-      <StyledMain>{children}</StyledMain>
+      <Main id="main" tabIndex={-1}>
+        {children}
+      </Main>
       <Footer />
-    </StyledWrapper>
+    </Shell>
   );
 }
 

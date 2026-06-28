@@ -1,138 +1,131 @@
-import { createRef, useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
+import {
+  Button,
+  CodePanel,
+  Field,
+  LiveRegion,
+  Readout,
+  Row,
+  SelectField,
+  SpecimenCard,
+  Stack,
+  SubLabel,
+  Text,
+} from "ui";
 import ThemeContext from "contexts/Theme";
 
-import {
-  StyledBlock,
-  StyledButton,
-  StyledHighlightedText,
-  StyledText,
-  StyledTitle,
-  StyledWrapper,
-} from "styles/TestBlockStyles";
-
-const name = "Function Component";
+const name = "Effect lifecycle";
 
 function createConnection(serverUrl, roomId) {
-  // A real implementation would actually connect to the server
+  // A real implementation would actually open a socket to the server.
   return {
     connect() {
-      console.log(
-        `✅[${name}]: Connected to server: ${serverUrl}, room: ${roomId}`,
-      );
+      console.log(`[${name}]: connected to ${serverUrl}, room ${roomId}`);
     },
     disconnect() {
-      console.log(
-        `❌[${name}]: Disconnected from server: ${serverUrl}, room: ${roomId}`,
-      );
+      console.log(`[${name}]: disconnected from ${serverUrl}, room ${roomId}`);
     },
   };
 }
 
-function TestFunctionComponent(props) {
-  const theme = useContext(ThemeContext);
+const ROOMS = [
+  { value: 1, label: "General" },
+  { value: 2, label: "Develops" },
+  { value: 3, label: "Designers" },
+];
+
+export default function TestFunctionComponent() {
+  const { theme } = useContext(ThemeContext);
 
   const [count, setCount] = useState(0);
   const [serverUrl, setServerUrl] = useState("http://localhost:3000");
   const [roomId, setRoomId] = useState(1);
 
-  const roomRef = createRef();
-  const serverRef = createRef();
+  const serverRef = useRef(null);
+  const roomRef = useRef(null);
 
   useEffect(() => {
     const connection = createConnection(serverUrl, roomId);
-
     connection.connect();
 
     return () => {
       connection.disconnect();
     };
-  }, [roomId, serverUrl]);
+  }, [serverUrl, roomId]);
+
+  const roomLabel = ROOMS.find((r) => r.value === roomId)?.label ?? "-";
 
   return (
-    <StyledWrapper>
-      <StyledText>Reactive values handled with</StyledText>
-      <StyledHighlightedText as={"pre"}>useEffect</StyledHighlightedText>
-      <StyledText>-</StyledText>
+    <SpecimenCard
+      index={28}
+      name={name}
+      category="Lifecycle"
+      status="on"
+      instruments={["useEffect", "useContext", "cleanup"]}
+      blurb="The same connection lifecycle as the class card, expressed as one useEffect with a cleanup. Less code, same guarantees."
+    >
+      <Stack $gap="var(--sp-2)">
+        <SubLabel as="h3">connection</SubLabel>
+        <CodePanel>{`useEffect(() => {
+  const c = createConnection(serverUrl, roomId);
+  c.connect();
+  return () => c.disconnect();
+}, [serverUrl, roomId]);`}</CodePanel>
+        <LiveRegion>
+          live on <Readout>{serverUrl}</Readout> / room{" "}
+          <Readout>{roomLabel}</Readout>
+        </LiveRegion>
+      </Stack>
 
-      <StyledHighlightedText as={"pre"}>
-        componentDidMount, componentDidUpdate, componentDidUnmount
-      </StyledHighlightedText>
-      <StyledText>takes more code and less developer friendly</StyledText>
+      <Stack $gap="var(--sp-2)">
+        <SubLabel as="h3">server</SubLabel>
+        <Row $gap="var(--sp-2)">
+          <Field
+            label="Server URL"
+            inputRef={serverRef}
+            type="text"
+            defaultValue={serverUrl}
+          />
+          <Button
+            $variant="primary"
+            onClick={() => setServerUrl(serverRef.current.value)}
+          >
+            Apply
+          </Button>
+        </Row>
+      </Stack>
 
-      <StyledBlock>
-        <StyledText>Server:</StyledText>
-
-        <input ref={serverRef} id="server" type="text" />
-
-        <StyledButton onClick={() => setServerUrl(serverRef.current.value)}>
-          Apply server
-        </StyledButton>
-      </StyledBlock>
-
-      <StyledBlock>
-        <StyledText>Room:</StyledText>
-        <select
-          ref={roomRef}
+      <Stack $gap="var(--sp-2)">
+        <SubLabel as="h3">room</SubLabel>
+        <SelectField
+          label="Room"
+          selectRef={roomRef}
           value={roomId}
-          onChange={() => setRoomId(roomRef.current.value)}
+          onChange={() => setRoomId(Number(roomRef.current.value))}
         >
-          <option value="1">General</option>
-          <option value="2">Develops</option>
-          <option value="3">Designers</option>
-        </select>
-      </StyledBlock>
+          {ROOMS.map((r) => (
+            <option key={r.value} value={r.value}>
+              {r.label}
+            </option>
+          ))}
+        </SelectField>
+      </Stack>
 
-      <StyledTitle>Test (function component)</StyledTitle>
-
-      <StyledText>
-        So this is <StyledHighlightedText>function</StyledHighlightedText>{" "}
-        component
-      </StyledText>
-
-      <StyledText>
-        Theme context: <StyledHighlightedText>{theme}</StyledHighlightedText>{" "}
-      </StyledText>
-
-      <StyledText>
-        Styled with:{" "}
-        <StyledHighlightedText>styled-components</StyledHighlightedText>{" "}
-        exported with a{" "}
-        <StyledHighlightedText>single exported file</StyledHighlightedText>
-      </StyledText>
-
-      <StyledText>
-        And that's <StyledHighlightedText>cool</StyledHighlightedText>
-      </StyledText>
-
-      <StyledText>
-        Props:{" "}
-        {Object.keys(props).map((key) => (
-          <StyledHighlightedText key={key}>
-            {props[key]} |{" "}
-          </StyledHighlightedText>
-        ))}
-      </StyledText>
-
-      <StyledBlock>
-        <StyledText>State usage:</StyledText>
-        <StyledHighlightedText>{count}</StyledHighlightedText>
-        <StyledButton
-          onClick={() => {
-            setCount(count + 1);
-          }}
-        >
-          +
-        </StyledButton>
-        <StyledButton
-          onClick={() => {
-            setCount(count - 1);
-          }}
-        >
-          -
-        </StyledButton>
-      </StyledBlock>
-    </StyledWrapper>
+      <Stack $gap="var(--sp-2)">
+        <SubLabel as="h3">state</SubLabel>
+        <Row>
+          <Button $variant="ghost" onClick={() => setCount((c) => c - 1)}>
+            -
+          </Button>
+          <Readout>{count}</Readout>
+          <Button $variant="ghost" onClick={() => setCount((c) => c + 1)}>
+            +
+          </Button>
+        </Row>
+        <Text as="span">
+          theme context reads <Readout>{theme}</Readout>
+        </Text>
+      </Stack>
+    </SpecimenCard>
   );
 }
-
-export default TestFunctionComponent;
