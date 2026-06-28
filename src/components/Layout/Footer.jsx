@@ -53,7 +53,7 @@ export default function Footer() {
       </Cell>
       <Cell>react 18 · react-router 6 · styled-components</Cell>
       <Cell>
-        © 2024 ·{" "}
+        © 2026 ·{" "}
         <Src
           href="https://github.com/selimdev00/learn-react-deeper"
           target="_blank"

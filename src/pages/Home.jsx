@@ -104,13 +104,16 @@ const GroupCount = styled.span`
 `;
 
 const Grid = styled.div`
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--sp-5);
-  align-items: start;
+  column-gap: var(--sp-5);
+  columns: 1;
 
   @media (min-width: 768px) {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    columns: 2;
+  }
+
+  > * {
+    break-inside: avoid;
+    margin-bottom: var(--sp-5);
   }
 `;
 
